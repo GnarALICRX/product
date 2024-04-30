@@ -37,16 +37,16 @@ func main() {
 	defer io.Close()
 	opentracing.SetGlobalTracer(t)
 
-	//获取mysql 配置,路径中不用带前缀
+	//数据库设置
 	mysqlInfo := common.GetMysqlFromConsul(consulConfig, "mysql")
-	db, err := gorm.Open("mysql", mysqlInfo.User+":"+mysqlInfo.Pwd+"@/"+mysqlInfo.Database+"?charset=utf8&parseTime=true&loc=Local")
+	db, err := gorm.Open("mysql", mysqlInfo.User+":"+mysqlInfo.Pwd+"@/"+mysqlInfo.Database+"?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
 		log.Error(err)
 	}
 	defer db.Close()
 	//禁止副表
 	db.SingularTable(true)
-	
+
 	//初始化
 	repository.NewProductRepository(db).InitTable()
 

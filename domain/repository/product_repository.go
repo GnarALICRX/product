@@ -23,15 +23,15 @@ type ProductRepository struct {
 	mysqlDb *gorm.DB
 }
 
-// 初始化四张表
+// 初始化表
 func (u *ProductRepository) InitTable() error {
-	return u.mysqlDb.CreateTable(&model.Product{}, &model.ProductSeo{}, &model.ProductSize{}, &model.ProductImage{}).Error
+	return u.mysqlDb.CreateTable(&model.Product{}, &model.ProductSeo{}, &model.ProductImage{}, &model.ProductSize{}).Error
 }
 
 // 根据ID查找Product信息
 func (u *ProductRepository) FindProductByID(productID int64) (product *model.Product, err error) {
 	product = &model.Product{}
-	return product, u.mysqlDb.Preload("ProductImage").Preload("ProductSize").Preload("ProductSep").First(product, productID).Error
+	return product, u.mysqlDb.Preload("ProductImage").Preload("ProductSize").Preload("ProductSeo").First(product, productID).Error
 }
 
 // 创建Product信息
@@ -41,7 +41,7 @@ func (u *ProductRepository) CreateProduct(product *model.Product) (int64, error)
 
 // 根据ID删除Product信息
 func (u *ProductRepository) DeleteProductByID(productID int64) error {
-	//开启事物
+	//开启事务
 	tx := u.mysqlDb.Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -59,7 +59,7 @@ func (u *ProductRepository) DeleteProductByID(productID int64) error {
 		return err
 	}
 
-	if err := tx.Unscoped().Where("images_product_id = id", productID).Delete(&model.ProductImage{}).Error; err != nil {
+	if err := tx.Unscoped().Where("images_product_id = ?", productID).Delete(&model.ProductImage{}).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -75,7 +75,6 @@ func (u *ProductRepository) DeleteProductByID(productID int64) error {
 	}
 
 	return tx.Commit().Error
-
 }
 
 // 更新Product信息
